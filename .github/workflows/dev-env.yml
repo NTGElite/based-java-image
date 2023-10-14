@@ -1,0 +1,35 @@
+name: Ci cd Dev environment
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [ "master" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci-cd-dev-env:
+    environment: Develop environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        #        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Build and push Docker image
+        #        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          push: true
+          tags: ghcr.io/ntgelite/based-java-image:latest
